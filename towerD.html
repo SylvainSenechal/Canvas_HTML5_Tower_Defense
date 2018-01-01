@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tower Defense</title>
+       
+    </head>
+    <body>
+        <canvas id="mon_canvas">
+            Your browser doesn't support HTML5 Canvas.
+        </canvas>
+    </body>
+</html>
+<style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0px;
+      border: 0px;
+      overflow: hidden; /* virer la scrollbar */
+      display: block;  /* No floating content on sides */
+    }
+    
+</style>
+<script src="stats/build/stats.min.js"></script>
+<script>
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+// IDEES & REMARQUES //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// context.scale
+	// faire une map géante, avec des zoom et des foyers de création d'ennemis
+	// barre de vie ennemi
+	// // SHRINK : downscaler l'image avec les 2 arguments suplémentaires de drawImage, tester nombre à virgules comme 1.5, 3
+	// voir l'erreur quand la souris sort du canvas ?
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIN IDEES  & REMARQUES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// VARIABLES GLOBALES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	// VARIABLES LIBRAIRIE STATS.JS (FPS, MEMOIRE, MS POUR IMAGE)
+	var stats = new Stats();
+	stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+	document.body.appendChild( stats.dom );
+	/////////////////////////////////////////////////////////////
+
+	// VARIABLES TILES //////////////////////////////////////////
+	var sol = new Image();
+	sol.src = 'tiles/sol.png';
+	var tourelleDispo = new Image();
+	tourelleDispo.src = 'tiles/tourelleDispo.png';
+	var ennemi = new Image();
+	ennemi.src = 'tiles/ennemi.png';
+	var tourelle = new Image();
+	tourelle.src = 'tiles/tourelle.png';
+	var chemin = new Image();
+	chemin.src = 'tiles/chemin.png';
+	var depart = new Image();
+	depart.src = 'tiles/depart.png';
+	var arrivee = new Image();
+	arrivee.src = 'tiles/arrivee.png';
+	var productionLibre = new Image();
+	productionLibre.src = 'tiles/productionLibre.png'; 
+	var productionOccupee = new Image();
+	productionOccupee.src = 'tiles/productionOccupee.png';
+	var imageMissile = new Image();
+	imageMissile.src = 'tiles/missile.png';
+	var bombardier = new Image();
+	bombardier.src = 'tiles/bombardier.png';
+
+	// CORRESPONDANCES TILES <-> ID SUR LA MAP
+	// sol : 1
+	// tourelle dispo : 2
+	// ennemi type 3 : 3
+	// tourelle : 4
+	// chemin : 5
+	// depart : 6
+	// arrivee : 7
+	// productionLibre : 8
+	// production occupee : 9
+	/////////////////////////////////////////////////////////////
+
+	// CARTE ARRAY*ARRAY : X*Y <=> 56*28 TILES
+	var map = [
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,6,5,5,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,8,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,5,1,1,5,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,8,9,8,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,5,1,1,5,2,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,5,1,1,5,1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,5,2,2,5,2,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,5,5,5,5,2,5,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,5,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,5,1,1,1,1,1,1,1,1,1,1,1,1,5,2,1,1,1,1,1,1,1,1,1,1,1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,5,2,1,1,1,1,1,1,1,1,1,1,1,5,2,1,1,2,5,5,5,5,5,5,5,2,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,5,5,5,1,1,1,1,1,1,1,1,1,1,5,2,1,1,1,5,1,1,1,1,1,5,2,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,2,5,1,1,1,1,1,1,1,1,1,1,5,5,5,5,1,5,1,5,5,5,5,5,2,5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,2,1,1,1,1,1,1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,5,1,5,1,1,1,1,1,5,5,5,5,5,5,5,5,5,5,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,5,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,5,1,5,1,1,1,1,1,2,1,1,1,1,2,1,1,1,5,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,5,2,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,1,5,1,1,1,5,5,5,5,5,5,5,1,5,5,5,5,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,5,5,5,5,2,1,1,1,5,5,5,1,1,1,1,5,1,1,1,5,1,1,1,1,1,5,1,5,1,1,1,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,2,1,1,1,5,2,5,1,1,1,1,5,5,5,5,5,1,1,5,5,5,5,1,5,5,5,5,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,5,5,5,2,5,5,1,1,1,1,1,1,1,1,1,1,5,1,1,1,1,1,1,1,5,1,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,5,5,5,5,5,5,5,2,5,1,1,1,1,1,1,1,5,2,1,1,1,1,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,2,5,1,1,1,1,1,1,1,5,5,5,5,5,5,1,1,1,1,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,1,1,1,1,1,1,1,1,1,1,1,1,5,1,5,5,5,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,2,5,2,5,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,7,1,5,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,1,1,1,5,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,5,5,5,5,1],
+	  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+	];
+
+	// TABLEAU APPARITIONS ENNEMIS : FORMAT[type ennemi, seconde d'apparition, vitesse]
+	var fileEnnemis = [ // voir à faire un x10, puis /10 pour affiner la vitesse au dixième
+		[3, 0, 3], 
+		[3, 1, 1],
+		[3, 2, 2],
+		[3, 3, 2],
+		[3, 4, 5],
+		[3, 5, 6],
+		[3, 7, 7],
+		[3, 10, 7],
+		[3, 11, 8],
+		[3, 18, 7],
+		[3, 19, 3],
+		[3, 20, 3],
+		[3, 20, 4],
+		[3, 20, 5],
+		[3, 20, 6],
+		[3, 22, 8],
+		[3, 23, 11],
+		[3, 23, 12],
+		[3, 26, 7],
+		[3, 26, 8],
+		[3, 26, 9],
+		[3, 26, 10],
+		[3, 26, 11],
+		[3, 26, 12],
+		[3, 26, 13],
+		[3, 26, 10],
+		[3, 26, 15]
+	];
+
+	// VARIABLES INITIALISATION DU CANVAS + TAILLE ECRAN
+	var canvas = document.getElementById('mon_canvas');
+	var context = canvas.getContext('2d');
+	var wdt = window.innerWidth;
+	var hgt = window.innerHeight; 
+	context.canvas.width = wdt;
+	context.canvas.height = hgt;
+
+	// Constantes gestion taille fenêtre, taille tiles, taille zoom
+	var offsetMenuHor = 0.1*wdt; // 10% de décalage pour afficher une menu à gauche de la map
+	var offsetMenuVert = 0.1*hgt; // 10% de décalage pour de la place en haut de map (+/- inutile)
+
+	// VARIABLES JEU
+	var tick = 1;
+	var time = 0;
+	var joueur1; // Création d'un joueur
+	// Tableaux des objets dans le jeu
+	var listeEnnemis = new Array();
+	var listeTourellesAlliees = new Array();
+	var listeMissiles = new Array();
+	// Variable position et clics souris
+	var clickX, clickY;
+	var mouseX, mouseY;
+	// Autres variables
+
+	
+	var posEnnemiX;
+	var posEnnemiY;
+	posEnnemiX = 300+33*1+16; //posEnnemiX = 300+33*j;
+	posEnnemiY = 20+33*4+16; //posEnnemiY = 20+33*i;
+	var vitesseRestante;
+	
+	var posEnnemiXMap;
+	var posEnnemiYMap;
+
+	var posP; // 1 droite, 2 gauche, 3 haut, 4 bas
+
+	var clignotant = false;
+	var tourelleAttaquante;
+	var cibleTrouvee = false;
+	var distanceCible;
+
+	// VARIABLE STATS ENNEMIS & ALLIES, variables qui varient sur actions joueur
+	var turretSelected = "classique";
+	var vie = 10; // vie ennemis
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIN VARIABLES GLOBALES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CLASSES ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function joueur(){
+		this.level = 1;  // Level du joueur (si implémentation de plusieurs maps/level)
+		this.gold = 500; // Golds de départ
+	}
+	
+	function TourelleAlliee(posTX, posTY, range, damage){
+		this.dommages = damage;
+		this.porteePixel = range; // 75
+		this.posTourelleAllieeX = posTX;
+		this.posTourelleAllieeY = posTY;
+		this.posTourPixelX = posTX*33+300+16;
+		this.posTourPixelY = posTY*33+20+16;
+	}
+	// ajouter un type longue portée + portée minimale + faible cadence
+	
+	function Ennemi(vie, posEnnemiX, posEnnemiY, vitesse){
+		this.vie = vie;
+		this.vieBarre = context.createImageData(20, 1);
+		this.x = posEnnemiX;
+		this.y = posEnnemiY;
+		this.vitesse = vitesse;
+		this.trajet = [];
+		this.trajetRetour = [];
+
+		this.addTrajet = function(){
+			var tempX = Math.trunc((posEnnemiX-300)/33);
+			var tempY = Math.trunc((posEnnemiY-20)/33);
+			var finTrajet = false;
+			while(!finTrajet){
+				if(map[tempY][tempX+1]==7 || map[tempY][tempX-1]==7 || map[tempY+1][tempX]==7 || map[tempY-1][tempX]==7){ finTrajet = true; }
+				else if(map[tempY][tempX+1] == 5 && posP!=1){ this.trajet.push({direction:"droite", distance:33}); tempX++; posP=2
+															this.trajetRetour.unshift({direction:"gauche", distance:33}); } // droite
+				else if(map[tempY][tempX-1] == 5 && posP!=2){ this.trajet.push({direction:"gauche", distance:33}); tempX--; posP=1
+															this.trajetRetour.unshift({direction:"droite", distance:33}); } // gauche
+				else if(map[tempY-1][tempX] == 5 && posP!=3){ this.trajet.push({direction:"haut", distance:33}); tempY--; posP=4
+															this.trajetRetour.unshift({direction:"bas", distance:33}); } // haut
+				else if(map[tempY+1][tempX] == 5 && posP!=4){ this.trajet.push({direction:"bas", distance:33}); tempY++; posP=3
+															this.trajetRetour.unshift({direction:"haut", distance:33}); } // bas	
+			}
+		}
+
+		this.addBarreVie = function(){
+			for(i=0; i<this.vieBarre.data.length; i+=4){
+				this.vieBarre.data[i+0]=0;
+				this.vieBarre.data[i+1]=255;
+				this.vieBarre.data[i+2]=0;
+				this.vieBarre.data[i+3]=255;
+			}
+			// inutile ? : context.putImageData(this.vieBarre, this.x, this.y - 30);
+		}
+	}
+
+	function missile(posX, posY, dommages, cible){ // le missile doit infliger des dommages quand il touche, pas quand il est tiré !
+		this.posX = posX;
+		this.posY = posY;
+		this.dommages = dommages;
+		this.cible = cible;
+		this.vitesse = 15;
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIN CLASSES ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FONCTIONS DE DESSIN ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	function dessinMap(){
+		//context.clearRect(0, 0, wdt, hgt); // inutile ici
+		for(i=0; i<28; i++){
+			for(j=0; j<56; j++){
+				if(map[i][j] == 1){ context.drawImage(sol, 300+33*j, 20+33*i) } // calculer le milieu de l'écran etc
+				else if (map[i][j] == 2){ context.drawImage(tourelleDispo, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 3){ context.drawImage(ennemi, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 4){ context.drawImage(tourelle, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 5){ context.drawImage(chemin, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 6){ context.drawImage(depart, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 7){ context.drawImage(arrivee, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 8){ context.drawImage(productionLibre, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 9){ context.drawImage(productionOccupee, 300+33*j, 20+33*i); }
+				else if (map[i][j] == 'a'){ context.drawImage(bombardier, 300+33*j, 20+33*i); }
+			}
+		}
+	}
+// SEPARER DESSIN DU DEPLACEMENT POUR (mieux) GERER LA VITESSE
+	function dessinDeplaceEnnemis(){
+		for(i=0; i<listeEnnemis.length; i++){
+			context.drawImage(ennemi, listeEnnemis[i].x - 16, listeEnnemis[i].y - 16);
+
+
+			if(listeEnnemis[i].trajet.length != 0){ // Si on est sur le trajet aller
+				vitesseRestante = listeEnnemis[i].vitesse;
+				while(vitesseRestante > 0){
+					if(listeEnnemis[i].trajet.length>0){
+						if (listeEnnemis[i].trajet[0].direction == "droite") {listeEnnemis[i].x+=0.1; listeEnnemis[i].trajet[0].distance-=0.1; }
+						else if (listeEnnemis[i].trajet[0].direction == "gauche") {listeEnnemis[i].x-=0.1; listeEnnemis[i].trajet[0].distance-=0.1; }
+						else if (listeEnnemis[i].trajet[0].direction == "haut") {listeEnnemis[i].y-=0.1; listeEnnemis[i].trajet[0].distance-=0.1; }
+						else if (listeEnnemis[i].trajet[0].direction == "bas") {listeEnnemis[i].y+=0.1; listeEnnemis[i].trajet[0].distance-=0.1; }
+						if(listeEnnemis[i].trajet[0].distance <= 0) { listeEnnemis[i].trajet.shift(); }
+					}
+					vitesseRestante-=0.1;
+				}
+			}
+			
+			else{ // Si on est sur le trajet retour 
+				//console.log("trajet retour");
+				vitesseRestante = listeEnnemis[i].vitesse;
+				while(vitesseRestante > 0){
+					if(listeEnnemis[i].trajetRetour.length>0){
+						if (listeEnnemis[i].trajetRetour[0].direction == "droite") {listeEnnemis[i].x+=0.1; listeEnnemis[i].trajetRetour[0].distance-=0.1; }
+						else if (listeEnnemis[i].trajetRetour[0].direction == "gauche") {listeEnnemis[i].x-=0.1; listeEnnemis[i].trajetRetour[0].distance-=0.1; }
+						else if (listeEnnemis[i].trajetRetour[0].direction == "haut") {listeEnnemis[i].y-=0.1; listeEnnemis[i].trajetRetour[0].distance-=0.1; }
+						else if (listeEnnemis[i].trajetRetour[0].direction == "bas") {listeEnnemis[i].y+=0.1; listeEnnemis[i].trajetRetour[0].distance-=0.1; }
+						if(listeEnnemis[i].trajetRetour[0].distance <= 0) { listeEnnemis[i].trajetRetour.shift(); }
+					}
+					vitesseRestante-=0.1;
+				}
+				
+			}
+
+				
+			
+		}
+	}
+
+	function dessinBarreVie(){
+		for(i=0; i<listeEnnemis.length; i++){
+			context.putImageData(listeEnnemis[i].vieBarre, listeEnnemis[i].x -10, listeEnnemis[i].y - 20);
+		}
+	}
+
+
+	// attention au pas depasser les pixels max dans boucle for
+	var tempo;
+	function dessinMissiles(){
+		console.log(listeMissiles.length);
+		for(i=0; i<listeMissiles.length; i++){
+			context.drawImage(imageMissile, listeMissiles[i].posX, listeMissiles[i].posY);
+			if(Math.abs(listeMissiles[i].posX-listeMissiles[i].cible.x) < 5 && Math.abs(listeMissiles[i].posY-listeMissiles[i].cible.y) < 5){
+				listeMissiles[i].cible.vie -= listeMissiles[i].dommages;
+
+				tempo = listeMissiles[i].cible.vie/10;
+				for(j=0; j<listeMissiles[i].cible.vieBarre.data.length * (1-tempo); j+=4){
+					listeMissiles[i].cible.vieBarre.data[j+0]=255;
+					listeMissiles[i].cible.vieBarre.data[j+1]=0;
+				}
+				
+				listeMissiles.splice(i, 1);  // problème ici des fois la cible est déjà morte mais on rentre pas dans le if plus haut -> missile non supprimé 
+			}
+		}
+	}
+
+	function dessinTourelleAllieeClignotantes(){
+		if(clignotant == true){
+			if(turretSelected == "classique"){ context.drawImage(tourelle, mouseX*33 + 300, mouseY*33 + 20); }
+			else if(turretSelected == "bombardier"){ context.drawImage(bombardier, mouseX*33 + 300, mouseY*33 + 20); }
+			
+		}
+	}
+
+	
+	function statsJoueur(){
+		context.clearRect(0, 0, 300, 400);
+		context.font = "30px Arial";
+		context.fillText("gold : " + joueur1.gold, 20, 150);
+		context.fillText("Tourelle : ", 20, 200);
+		context.fillText("classique", 20, 240);
+		context.fillText("bombardier", 20, 290);
+		context.drawImage(tourelle, 200, 240-25);
+		context.drawImage(bombardier, 200, 290-25);
+		if(turretSelected == "classique"){ context.strokeRect(200, 240-25, 33, 33); }
+		else if(turretSelected == "bombardier"){ context.strokeRect(200, 290-25, 33, 33); }
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIN FONCTIONS DE DESSIN ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FONCTIONS INTERACTIONS AVEC LE JEU ET AUTRES ///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	var composanteVitesseX, composanteVitesseY;
+	var composanteVitesseXabs, composanteVitesseYabs;
+	function mouvementsMissile(){ // A REFAIRE OPTIMISE ? // tester sans trunc, voir avec des vitesses faibles si le comportement est meilleur sur diagonales 
+		for(i=0; i<listeMissiles.length; i++){
+			composanteVitesseX = listeMissiles[i].posX-listeMissiles[i].cible.x;
+			composanteVitesseY = listeMissiles[i].posY-listeMissiles[i].cible.y;
+
+			composanteVitesseXabs = Math.abs(composanteVitesseX);
+			composanteVitesseYabs = Math.abs(composanteVitesseY);
+			composanteVitesseXabs = composanteVitesseXabs/(composanteVitesseXabs+composanteVitesseYabs)*listeMissiles[i].vitesse;
+			composanteVitesseYabs = listeMissiles[i].vitesse-composanteVitesseXabs;
+			if(composanteVitesseX>0){ listeMissiles[i].posX -= composanteVitesseXabs; }
+			else{ listeMissiles[i].posX += composanteVitesseXabs; }
+			
+			if(composanteVitesseY>0){ listeMissiles[i].posY -= composanteVitesseYabs; }
+			else{ listeMissiles[i].posY += composanteVitesseYabs; }
+		}
+	}
+	
+	function ajoutEnnemi(){
+		if(fileEnnemis.length != 0 ){
+			if(fileEnnemis[0][1] == time){
+				listeEnnemis.unshift(new Ennemi(vie, posEnnemiX, posEnnemiY, fileEnnemis[0][2]));
+				listeEnnemis[0].addTrajet();	
+				listeEnnemis[0].addBarreVie();
+				fileEnnemis.shift();
+			}
+		}
+	}
+	
+	var jInverse;
+	function tir(){
+		for(i=0; i<listeTourellesAlliees.length; i++){
+			tourelleAttaquante = listeTourellesAlliees[i];
+			var j = 0;
+			cibleTrouvee = false;
+			while(cibleTrouvee == false && j<listeEnnemis.length){ // trouver une amélioration pour ne pas avoir à calculer LE.lentght-j-1
+				jInverse = listeEnnemis.length-j-1;
+				distanceCible = Math.sqrt(Math.pow(tourelleAttaquante.posTourPixelX - listeEnnemis[jInverse].x, 2) + Math.pow(tourelleAttaquante.posTourPixelY - listeEnnemis[jInverse].y , 2) );
+
+				if(distanceCible < tourelleAttaquante.porteePixel){ // a modifier pour que les dommages se fassent via le missile
+					cibleTrouvee = true;
+					listeMissiles.push(new missile(tourelleAttaquante.posTourPixelX-1, tourelleAttaquante.posTourPixelY-1, tourelleAttaquante.dommages, listeEnnemis[jInverse]));
+				}
+				j++;
+			}
+		}
+	}
+
+	function suppressionEnnemi(){
+		for(i=0; i<listeEnnemis.length; i++){
+			if(listeEnnemis[i].vie <= 0) { listeEnnemis.splice(i, 1); joueur1.gold += 100; statsJoueur(); } // suppression de l'ennemi mort
+		}
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIN FONCTIONS INTERACTIONS AVEC LE JEU ET AUTRES ///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FONCTIONS INTERACTIONS SOURIS, CLAVIER, ZOOM ///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	document.onmousemove = function(e){
+		mouseX = Math.trunc((e.clientX-300)/33);
+		mouseY = Math.trunc((e.clientY-20)/33);
+		if(map[mouseY][mouseX] == 2){ clignotant = true; }
+		else { clignotant = false; }
+	}
+	context.drawImage(tourelle, 200, 240-25);
+	context.drawImage(bombardier, 200, 290-25);
+	document.onclick = function(e){
+	/* POUR PLUS TARD :	
+		context.rotate(1*Math.PI/180);
+		context.clearRect(0, 0, wdt, hgt); // inutile ici
+		context.scale(0.9, 0.9)
+	*/	
+		if(e.clientX>200 && e.clientX<233 && e.clientY>240-25 && e.clientY<240-25+33){turretSelected="classique";}
+		if(e.clientX>200 && e.clientX<233 && e.clientY>290-25 && e.clientY<290-25+33){turretSelected="bombardier";}
+
+		clickX = Math.trunc((e.clientX-300)/33);
+		clickY = Math.trunc((e.clientY-20)/33);
+		if(map[clickY][clickX] != 4 && map[clickY][clickX] != 'a'){ // si case pas déjà occupée par bombardier ou classique
+			if(map[clickY][clickX] == 2 && turretSelected == "classique" && joueur1.gold >= 100){
+				map[clickY][clickX] = 4;
+				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, 110, 2)); // range 75 idéale 
+				joueur1.gold -= 100;
+			}
+			else if(map[clickY][clickX] == 2 && turretSelected == "bombardier" && joueur1.gold >= 300){
+				map[clickY][clickX] = 'a';
+				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, 2000, 3));
+				joueur1.gold -= 300;
+			}		
+		}
+		statsJoueur();
+	}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FIN FONCTIONS INTERACTIONS SOURIS ET CLAVIER ///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  INIT  & LOOP //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	window.addEventListener('load', init);
+	window.addEventListener('resize', resize);
+
+	function resize(){ // voir si on peut catch une erreur pour ça qui ne fonctionne plus ?
+		wdt = window.innerWidth;
+		hgt = window.innerHeight; 
+		context.canvas.width = wdt;
+		context.canvas.height = hgt;
+	}
+
+	function loop(){
+		stats.begin();
+
+		dessinMap(); // A executer toujours en premier
+
+
+		dessinTourelleAllieeClignotantes();
+		dessinMissiles();
+		ajoutEnnemi();
+		dessinDeplaceEnnemis();
+		mouvementsMissile();
+		suppressionEnnemi();
+		dessinBarreVie();
+		stats.end();
+		
+		requestAnimationFrame(loop);
+	}
+
+	function init(){
+		// initialiser des constantes soit ici, soit en appelant des fonctions une seule fois au début
+		joueur1 = new joueur();
+		statsJoueur(); // affichage stats, actualisé seulement si besoin (donc pas dans la loop)
+		var timeIncrement = setInterval(function(){ time += tick }, 1000/tick);
+		var attaque = setInterval(tir, 1000/tick);
+		loop();
+	}
+
+</script>
