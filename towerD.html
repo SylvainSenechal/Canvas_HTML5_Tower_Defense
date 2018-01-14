@@ -26,10 +26,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 // IDEES & REMARQUES //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TEST
 	// context.scale
 	// faire une map géante, avec des zoom et des foyers de création d'ennemis
-	// barre de vie ennemi
 	// // SHRINK : downscaler l'image avec les 2 arguments suplémentaires de drawImage, tester nombre à virgules comme 1.5, 3
 	// voir l'erreur quand la souris sort du canvas ?
 
@@ -117,33 +115,7 @@
 
 	// TABLEAU APPARITIONS ENNEMIS : FORMAT[type ennemi, seconde d'apparition, vitesse]
 	var fileEnnemis = [ // voir à faire un x10, puis /10 pour affiner la vitesse au dixième
-		[3, 0, 3], 
-		[3, 1, 1],
-		[3, 2, 2],
-		[3, 3, 2],
-		[3, 4, 5],
-		[3, 5, 6],
-		[3, 7, 7],
-		[3, 10, 7],
-		[3, 11, 8],
-		[3, 18, 7],
-		[3, 19, 3],
-		[3, 20, 3],
-		[3, 20, 4],
-		[3, 20, 5],
-		[3, 20, 6],
-		[3, 22, 8],
-		[3, 23, 11],
-		[3, 23, 12],
-		[3, 26, 7],
-		[3, 26, 8],
-		[3, 26, 9],
-		[3, 26, 10],
-		[3, 26, 11],
-		[3, 26, 12],
-		[3, 26, 13],
-		[3, 26, 10],
-		[3, 26, 15]
+	
 	];
 
 	// VARIABLES INITIALISATION DU CANVAS + TAILLE ECRAN
@@ -336,10 +308,9 @@
 	// attention au pas depasser les pixels max dans boucle for
 	var tempo;
 	function dessinMissiles(){
-		console.log(listeMissiles.length);
 		for(i=0; i<listeMissiles.length; i++){
 			context.drawImage(imageMissile, listeMissiles[i].posX, listeMissiles[i].posY);
-			if(Math.abs(listeMissiles[i].posX-listeMissiles[i].cible.x) < 5 && Math.abs(listeMissiles[i].posY-listeMissiles[i].cible.y) < 5){
+			if(Math.abs(listeMissiles[i].posX-listeMissiles[i].cible.x) < 10 && Math.abs(listeMissiles[i].posY-listeMissiles[i].cible.y) < 10){
 				listeMissiles[i].cible.vie -= listeMissiles[i].dommages;
 
 				tempo = listeMissiles[i].cible.vie/10;
@@ -347,7 +318,6 @@
 					listeMissiles[i].cible.vieBarre.data[j+0]=255;
 					listeMissiles[i].cible.vieBarre.data[j+1]=0;
 				}
-				
 				listeMissiles.splice(i, 1);  // problème ici des fois la cible est déjà morte mais on rentre pas dans le if plus haut -> missile non supprimé 
 			}
 		}
@@ -404,6 +374,7 @@
 	
 	function ajoutEnnemi(){
 		if(fileEnnemis.length != 0 ){
+			console.log(fileEnnemis)
 			if(fileEnnemis[0][1] == time){
 				listeEnnemis.unshift(new Ennemi(vie, posEnnemiX, posEnnemiY, fileEnnemis[0][2]));
 				listeEnnemis[0].addTrajet();	
@@ -436,6 +407,13 @@
 		for(i=0; i<listeEnnemis.length; i++){
 			if(listeEnnemis[i].vie <= 0) { listeEnnemis.splice(i, 1); joueur1.gold += 100; statsJoueur(); } // suppression de l'ennemi mort
 		}
+	}
+
+	function creationFileEnnemis(){
+		for(i=0; i<100; i++){
+			fileEnnemis.push([3, Math.trunc(Math.random() * 100), Math.trunc(Math.random() * 12)])
+		}
+		console.log(fileEnnemis)
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,6 +498,7 @@
 		// initialiser des constantes soit ici, soit en appelant des fonctions une seule fois au début
 		joueur1 = new joueur();
 		statsJoueur(); // affichage stats, actualisé seulement si besoin (donc pas dans la loop)
+		creationFileEnnemis();
 		var timeIncrement = setInterval(function(){ time += tick }, 1000/tick);
 		var attaque = setInterval(tir, 1000/tick);
 		loop();
