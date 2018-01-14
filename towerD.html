@@ -374,7 +374,6 @@
 	
 	function ajoutEnnemi(){
 		if(fileEnnemis.length != 0 ){
-			console.log(fileEnnemis)
 			if(fileEnnemis[0][1] == time){
 				listeEnnemis.unshift(new Ennemi(vie, posEnnemiX, posEnnemiY, fileEnnemis[0][2]));
 				listeEnnemis[0].addTrajet();	
@@ -410,9 +409,12 @@
 	}
 
 	function creationFileEnnemis(){
-		for(i=0; i<100; i++){
-			fileEnnemis.push([3, Math.trunc(Math.random() * 100), Math.trunc(Math.random() * 12)])
+
+		fileEnnemis.push([3, Math.trunc(Math.random() * 3), Math.trunc(Math.random() * 12)])
+		for(i=1; i<100; i++){
+			fileEnnemis.push([3, fileEnnemis[i-1][1] +  Math.trunc(Math.random() * 4), 1 + Math.trunc(Math.random() * 10)])
 		}
+		console.log(fileEnnemis[2][1])
 		console.log(fileEnnemis)
 	}
 
