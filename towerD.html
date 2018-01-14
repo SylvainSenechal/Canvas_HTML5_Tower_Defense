@@ -166,7 +166,8 @@
 	var turretSelected = "classique";
 	var vie3 = 10; // vie ennemis type 3
 	var vie4 = 30; // vie ennemis type 4
-
+	var range3 = 110;
+	var range4 = 300;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FIN VARIABLES GLOBALES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -296,11 +297,7 @@
 					}
 					vitesseRestante-=0.1;
 				}
-				
 			}
-
-				
-			
 		}
 	}
 
@@ -330,17 +327,43 @@
 			}
 		}
 	}
-
+////////////////////// CONSOLE.LOG POUR VOIR QUAND SE FAIT LE TIR PAR RAPPORT A LA RANGE
 	function dessinTourelleAllieeClignotantes(){
+		var xCircle = mouseX*33+300+16;
+		var YCircle = mouseY*33+20+16;
+
 		if(clignotant == true){
-			if(turretSelected == "classique"){ context.drawImage(tourelle, mouseX*33 + 300, mouseY*33 + 20); }
-			else if(turretSelected == "bombardier"){ context.drawImage(bombardier, mouseX*33 + 300, mouseY*33 + 20); }
+				var gradient = context.createRadialGradient(xCircle, YCircle, 0, xCircle, YCircle, range3)
+				gradient.addColorStop(0, "rgba(255, 0, 0, 0.5)");
+				gradient.addColorStop(0.6, "rgba(255, 110, 110, 0.2)");
+				gradient.addColorStop(1, "rgba(255, 230, 180, 0.2)");
+			
+			if(turretSelected == "classique"){
+				context.drawImage(tourelle, mouseX*33 + 300, mouseY*33 + 20);
+			
+				context.beginPath();
+				context.fillStyle = gradient;
+				context.arc(xCircle, YCircle, range3, 0, 2*Math.PI)
+				context.fill();
+				context.closePath();
+			}
+			else if(turretSelected == "bombardier"){
+				context.drawImage(bombardier, mouseX*33 + 300, mouseY*33 + 20);
+
+				context.beginPath();
+				context.fillStyle = gradient;
+				context.arc(xCircle, YCircle, range4, 0, 2*Math.PI)
+				context.fill();
+				context.closePath();
+			}
 			
 		}
+		
 	}
 
 	
 	function statsJoueur(){
+		context.fillStyle = 'black';
 		context.clearRect(0, 0, 300, 400);
 		context.font = "30px Arial";
 		context.fillText("gold : " + joueur1.gold, 20, 150);
@@ -438,7 +461,6 @@
 	var vitesseAugmentation = 0;
 	var typeE = 3;
 	function creationFileEnnemis(){
-
 		fileEnnemis.push([3, Math.trunc(Math.random() * 3), Math.trunc(Math.random() * 12)])
 		for(i=1; i<100; i++){
 			if( i % 8 == 0 ) { vitesseAugmentation += 1}
@@ -462,8 +484,8 @@
 		if(map[mouseY][mouseX] == 2){ clignotant = true; }
 		else { clignotant = false; }
 	}
-	context.drawImage(tourelle, 200, 240-25);
-	context.drawImage(bombardier, 200, 290-25);
+	//context.drawImage(tourelle, 200, 240-25);
+	//context.drawImage(bombardier, 200, 290-25);
 	document.onclick = function(e){
 	/* POUR PLUS TARD :	
 		context.rotate(1*Math.PI/180);
@@ -478,14 +500,18 @@
 		if(map[clickY][clickX] != 4 && map[clickY][clickX] != 'a'){ // si case pas déjà occupée par bombardier ou classique
 			if(map[clickY][clickX] == 2 && turretSelected == "classique" && joueur1.gold >= 100){
 				map[clickY][clickX] = 4;
-				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, 110, 2)); // range 75 idéale 
+				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range3, 2)); // range 75 idéale 
 				joueur1.gold -= 100;
 			}
 			else if(map[clickY][clickX] == 2 && turretSelected == "bombardier" && joueur1.gold >= 300){
 				map[clickY][clickX] = 'a';
-				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, 2000, 3));
+				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range4, 5));
 				joueur1.gold -= 300;
 			}		
+		}
+		if(map[clickY][clickX] == 1 && joueur1.gold >= 500){
+			map[clickY][clickX] = 2;
+			joueur1.gold -= 500;
 		}
 		statsJoueur();
 	}
