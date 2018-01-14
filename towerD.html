@@ -165,7 +165,7 @@
 	// VARIABLE STATS ENNEMIS & ALLIES, variables qui varient sur actions joueur
 	var turretSelected = "classique";
 	var vie3 = 10; // vie ennemis type 3
-	var vie4 = 20; // vie ennemis type 4
+	var vie4 = 30; // vie ennemis type 4
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FIN VARIABLES GLOBALES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -412,23 +412,23 @@
 		}
 	}
 
-	var xTempo, yTempo;
+	var xTempo, yTempo, trajetTempo, trajetRetTempo;
 	function suppressionEnnemi(){
 		for(i=0; i<listeEnnemis.length; i++){
 			if(listeEnnemis[i].vie <= 0){ 
 				if(listeEnnemis[i].type == 3){ listeEnnemis.splice(i, 1); joueur1.gold += 100; statsJoueur(); }
 				else if(listeEnnemis[i].type == 4){
+
 					xTempo = listeEnnemis[i].x;
 					yTempo = listeEnnemis[i].y;
+					trajetTempo = listeEnnemis[i].trajet;
+					trajetRetTempo = listeEnnemis[i].trajetRetour;
 					
 					listeEnnemis.splice(i, 1); joueur1.gold += 100; statsJoueur();
 					
-					listeEnnemis.unshift(new Ennemi(3, vie3, xTempo, yTempo, 1 + Math.trunc(Math.random()*6)));
-					listeEnnemis[0].addTrajet();	
-					listeEnnemis[0].addBarreVie();
-					
-					listeEnnemis.unshift(new Ennemi(3, vie3, xTempo, yTempo, 1 + Math.trunc(Math.random()*6)));
-					listeEnnemis[0].addTrajet();	
+					listeEnnemis.unshift(new Ennemi(3, vie3, xTempo, yTempo, 3 + Math.trunc(Math.random()*12)));
+					listeEnnemis[0].trajet = trajetTempo;
+					listeEnnemis[0].trajetRetour = trajetRetTempo;
 					listeEnnemis[0].addBarreVie();
 				}
 			}
@@ -442,10 +442,9 @@
 		fileEnnemis.push([3, Math.trunc(Math.random() * 3), Math.trunc(Math.random() * 12)])
 		for(i=1; i<100; i++){
 			if( i % 8 == 0 ) { vitesseAugmentation += 1}
-			if( Math.random() > 0.9 ){ typeE = 3 } else { typeE = 4}
+			if( Math.random() > 0.2 ){ typeE = 3 } else { typeE = 4}
 			fileEnnemis.push([typeE, fileEnnemis[i-1][1] +  Math.trunc(Math.random() * 4), 1 + vitesseAugmentation + Math.trunc(Math.random() * 6)])
 		}
-		console.log(fileEnnemis[2][1])
 		console.log(fileEnnemis)
 	}
 
