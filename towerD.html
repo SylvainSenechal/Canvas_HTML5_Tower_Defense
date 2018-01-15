@@ -164,10 +164,12 @@
 
 	// VARIABLE STATS ENNEMIS & ALLIES, variables qui varient sur actions joueur
 	var turretSelected = "classique";
-	var vie3 = 10; // vie ennemis type 3
-	var vie4 = 30; // vie ennemis type 4
+	var vie3 = 10; // vie ennemis type 3 (classique)
+	var vie4 = 30; // vie ennemis type 4 (bombardier)
 	var range3 = 110;
 	var range4 = 300;
+	var dmgClassique = 2;
+	var dmgBombardier = 4;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FIN VARIABLES GLOBALES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,13 +335,15 @@
 		var YCircle = mouseY*33+20+16;
 
 		if(clignotant == true){
+
+			
+			if(turretSelected == "classique"){
+				context.drawImage(tourelle, mouseX*33 + 300, mouseY*33 + 20);
+
 				var gradient = context.createRadialGradient(xCircle, YCircle, 0, xCircle, YCircle, range3)
 				gradient.addColorStop(0, "rgba(255, 0, 0, 0.5)");
 				gradient.addColorStop(0.6, "rgba(255, 110, 110, 0.2)");
 				gradient.addColorStop(1, "rgba(255, 230, 180, 0.2)");
-			
-			if(turretSelected == "classique"){
-				context.drawImage(tourelle, mouseX*33 + 300, mouseY*33 + 20);
 			
 				context.beginPath();
 				context.fillStyle = gradient;
@@ -349,6 +353,11 @@
 			}
 			else if(turretSelected == "bombardier"){
 				context.drawImage(bombardier, mouseX*33 + 300, mouseY*33 + 20);
+
+				var gradient = context.createRadialGradient(xCircle, YCircle, 0, xCircle, YCircle, range4)
+				gradient.addColorStop(0, "rgba(255, 0, 0, 0.5)");
+				gradient.addColorStop(0.6, "rgba(255, 110, 110, 0.2)");
+				gradient.addColorStop(1, "rgba(255, 230, 180, 0.2)");
 
 				context.beginPath();
 				context.fillStyle = gradient;
@@ -449,7 +458,7 @@
 					
 					listeEnnemis.splice(i, 1); joueur1.gold += 100; statsJoueur();
 					
-					listeEnnemis.unshift(new Ennemi(3, vie3, xTempo, yTempo, 3 + Math.trunc(Math.random()*12)));
+					listeEnnemis.unshift(new Ennemi(3, vie3, xTempo, yTempo, 4 + Math.trunc(Math.random()*12)));
 					listeEnnemis[0].trajet = trajetTempo;
 					listeEnnemis[0].trajetRetour = trajetRetTempo;
 					listeEnnemis[0].addBarreVie();
@@ -465,7 +474,7 @@
 		for(i=1; i<100; i++){
 			if( i % 8 == 0 ) { vitesseAugmentation += 1}
 			if( Math.random() > 0.2 ){ typeE = 3 } else { typeE = 4}
-			fileEnnemis.push([typeE, fileEnnemis[i-1][1] +  Math.trunc(Math.random() * 4), 1 + vitesseAugmentation + Math.trunc(Math.random() * 6)])
+			fileEnnemis.push([typeE, fileEnnemis[i-1][1] +  Math.trunc(Math.random() * 3), 1 + vitesseAugmentation + Math.trunc(Math.random() * 6)])
 		}
 		console.log(fileEnnemis)
 	}
@@ -500,12 +509,12 @@
 		if(map[clickY][clickX] != 4 && map[clickY][clickX] != 'a'){ // si case pas déjà occupée par bombardier ou classique
 			if(map[clickY][clickX] == 2 && turretSelected == "classique" && joueur1.gold >= 100){
 				map[clickY][clickX] = 4;
-				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range3, 2)); // range 75 idéale 
+				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range3, dmgClassique)); // range 75 idéale 
 				joueur1.gold -= 100;
 			}
 			else if(map[clickY][clickX] == 2 && turretSelected == "bombardier" && joueur1.gold >= 300){
 				map[clickY][clickX] = 'a';
-				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range4, 5));
+				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range4, dmgBombardier));
 				joueur1.gold -= 300;
 			}		
 		}
