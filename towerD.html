@@ -132,10 +132,7 @@
 	var offsetMenuHor = 0.1*wdt; // 10% de décalage pour afficher une menu à gauche de la map
 	var offsetMenuVert = 0.1*hgt; // 10% de décalage pour de la place en haut de map (+/- inutile)
 
-	// VARIABLES JEU
-	var tick = 1;
-	var time = 0;
-	var joueur1; // Création d'un joueur
+
 	// Tableaux des objets dans le jeu
 	var listeEnnemis = new Array();
 	var listeTourellesAlliees = new Array();
@@ -163,13 +160,20 @@
 	var distanceCible;
 
 	// VARIABLE STATS ENNEMIS & ALLIES, variables qui varient sur actions joueur
+	var tick = 1;
+	var tickAttack = 1; // 2 faster than 1 
+	var time = 0;
+	var joueur1; // Création d'un joueur
+	// RAJOUTER 3 EME TOURELLE SNIPER : OS ET RAPIDE MAIS TIR RATE LENT ET TOURELLE CHERE
 	var turretSelected = "classique";
 	var vie3 = 10; // vie ennemis type 3 (classique)
 	var vie4 = 30; // vie ennemis type 4 (bombardier)
 	var range3 = 110;
-	var range4 = 300;
+	var range4 = 600;
+	var vitesseClassique = 15;
+	var vitesseBombardier = 12;
 	var dmgClassique = 2;
-	var dmgBombardier = 4;
+	var dmgBombardier = 5;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FIN VARIABLES GLOBALES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,12 +235,13 @@
 		}
 	}
 
-	function missile(posX, posY, dommages, cible){ // le missile doit infliger des dommages quand il touche, pas quand il est tiré !
+	function missile(posX, posY, dommages, cible, type, vitesse){ // le missile doit infliger des dommages quand il touche, pas quand il est tiré !
 		this.posX = posX;
 		this.posY = posY;
+		this.type = type;
 		this.dommages = dommages;
 		this.cible = cible;
-		this.vitesse = 15;
+		this.vitesse = vitesse;
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,12 +314,27 @@
 		}
 	}
 
-
 	// attention au pas depasser les pixels max dans boucle for
 	var tempo;
 	function dessinMissiles(){
 		for(i=0; i<listeMissiles.length; i++){
-			context.drawImage(imageMissile, listeMissiles[i].posX, listeMissiles[i].posY);
+			//context.drawImage(imageMissile, listeMissiles[i].posX, listeMissiles[i].posY);
+
+			if(listeMissiles[i].type == 3){
+				context.beginPath();
+				context.fillStyle = "#99ff33";
+				context.arc(listeMissiles[i].posX, listeMissiles[i].posY, 4, 0, Math.PI*2);
+				context.fill();
+				context.closePath();
+			}
+			else if(listeMissiles[i].type == 4){
+				context.beginPath();
+				context.fillStyle = "#ffa366";
+				context.arc(listeMissiles[i].posX, listeMissiles[i].posY, 4, 0, Math.PI*2);
+				context.fill();
+				context.closePath();
+			}
+
 			if(Math.abs(listeMissiles[i].posX-listeMissiles[i].cible.x) < 10 && Math.abs(listeMissiles[i].posY-listeMissiles[i].cible.y) < 10){
 				listeMissiles[i].cible.vie -= listeMissiles[i].dommages;
 
@@ -437,7 +457,12 @@
 
 				if(distanceCible < tourelleAttaquante.porteePixel){ // a modifier pour que les dommages se fassent via le missile
 					cibleTrouvee = true;
-					listeMissiles.push(new missile(tourelleAttaquante.posTourPixelX-1, tourelleAttaquante.posTourPixelY-1, tourelleAttaquante.dommages, listeEnnemis[jInverse]));
+					if(tourelleAttaquante.dommages == dmgClassique){
+						listeMissiles.push(new missile(tourelleAttaquante.posTourPixelX-1, tourelleAttaquante.posTourPixelY-1, tourelleAttaquante.dommages, listeEnnemis[jInverse], 3, vitesseClassique));
+					}
+					else if(tourelleAttaquante.dommages == dmgBombardier){
+						listeMissiles.push(new missile(tourelleAttaquante.posTourPixelX-1, tourelleAttaquante.posTourPixelY-1, tourelleAttaquante.dommages, listeEnnemis[jInverse], 4, vitesseBombardier));
+					}
 				}
 				j++;
 			}
@@ -567,7 +592,7 @@
 		statsJoueur(); // affichage stats, actualisé seulement si besoin (donc pas dans la loop)
 		creationFileEnnemis();
 		var timeIncrement = setInterval(function(){ time += tick }, 1000/tick);
-		var attaque = setInterval(tir, 1000/tick);
+		var attaque = setInterval(tir, 1000/tickAttack);
 		loop();
 	}
 
