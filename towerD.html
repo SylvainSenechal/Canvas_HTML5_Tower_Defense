@@ -2,7 +2,7 @@
 <html>
     <head>
         <title>Tower Defense</title>
-       
+
     </head>
     <body>
         <canvas id="mon_canvas">
@@ -19,11 +19,11 @@
       overflow: hidden; /* virer la scrollbar */
       display: block;  /* No floating content on sides */
     }
-    
+
 </style>
 <script src="stats/build/stats.min.js"></script>
 <script>
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IDEES & REMARQUES //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// context.scale
@@ -38,13 +38,13 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // VARIABLES GLOBALES /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	// VARIABLES LIBRAIRIE STATS.JS (FPS, MEMOIRE, MS POUR IMAGE)
 	var stats = new Stats();
 	stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
 	document.body.appendChild( stats.dom );
 	/////////////////////////////////////////////////////////////
-
+  console.log('oui')
 	// VARIABLES TILES //////////////////////////////////////////
 	var sol = new Image();
 	sol.src = 'tiles/sol.png';
@@ -63,7 +63,7 @@
 	var arrivee = new Image();
 	arrivee.src = 'tiles/arrivee.png';
 	var productionLibre = new Image();
-	productionLibre.src = 'tiles/productionLibre.png'; 
+	productionLibre.src = 'tiles/productionLibre.png';
 	var productionOccupee = new Image();
 	productionOccupee.src = 'tiles/productionOccupee.png';
 	var imageMissile = new Image();
@@ -117,14 +117,14 @@
 
 	// TABLEAU APPARITIONS ENNEMIS : FORMAT[type ennemi, seconde d'apparition, vitesse]
 	var fileEnnemis = [ // voir à faire un x10, puis /10 pour affiner la vitesse au dixième
-	
+
 	];
 
 	// VARIABLES INITIALISATION DU CANVAS + TAILLE ECRAN
 	var canvas = document.getElementById('mon_canvas');
 	var context = canvas.getContext('2d');
 	var wdt = window.innerWidth;
-	var hgt = window.innerHeight; 
+	var hgt = window.innerHeight;
 	context.canvas.width = wdt;
 	context.canvas.height = hgt;
 
@@ -142,13 +142,13 @@
 	var mouseX, mouseY;
 	// Autres variables
 
-	
+
 	var posEnnemiX;
 	var posEnnemiY;
 	posEnnemiX = 300+33*1+16; //posEnnemiX = 300+33*j;
 	posEnnemiY = 20+33*4+16; //posEnnemiY = 20+33*i;
 	var vitesseRestante;
-	
+
 	var posEnnemiXMap;
 	var posEnnemiYMap;
 
@@ -161,7 +161,7 @@
 
 	// VARIABLE STATS ENNEMIS & ALLIES, variables qui varient sur actions joueur
 	var tick = 1;
-	var tickAttack = 1; // 2 faster than 1 
+	var tickAttack = 1; // 2 faster than 1
 	var time = 0;
 	var joueur1; // Création d'un joueur
 	// RAJOUTER 3 EME TOURELLE SNIPER : OS ET RAPIDE MAIS TIR RATE LENT ET TOURELLE CHERE
@@ -186,7 +186,7 @@
 		this.level = 1;  // Level du joueur (si implémentation de plusieurs maps/level)
 		this.gold = 500; // Golds de départ
 	}
-	
+
 	function TourelleAlliee(posTX, posTY, range, damage){
 		this.dommages = damage;
 		this.porteePixel = range; // 75
@@ -196,7 +196,7 @@
 		this.posTourPixelY = posTY*33+20+16;
 	}
 	// ajouter un type longue portée + portée minimale + faible cadence
-	
+
 	function Ennemi(type, vie, posEnnemiX, posEnnemiY, vitesse){
 		this.type = type;
 		this.vie = vie;
@@ -220,7 +220,7 @@
 				else if(map[tempY-1][tempX] == 5 && posP!=3){ this.trajet.push({direction:"haut", distance:33}); tempY--; posP=4
 															this.trajetRetour.unshift({direction:"bas", distance:33}); } // haut
 				else if(map[tempY+1][tempX] == 5 && posP!=4){ this.trajet.push({direction:"bas", distance:33}); tempY++; posP=3
-															this.trajetRetour.unshift({direction:"haut", distance:33}); } // bas	
+															this.trajetRetour.unshift({direction:"haut", distance:33}); } // bas
 			}
 		}
 
@@ -251,7 +251,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FONCTIONS DE DESSIN ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	function dessinMap(){
 		//context.clearRect(0, 0, wdt, hgt); // inutile ici
 		for(i=0; i<28; i++){
@@ -274,7 +274,7 @@
 		for(i=0; i<listeEnnemis.length; i++){
 			if(listeEnnemis[i].type == 3){context.drawImage(ennemi, listeEnnemis[i].x - 16, listeEnnemis[i].y - 16);}
 			else if (listeEnnemis[i].type == 4){context.drawImage(ennemi4, listeEnnemis[i].x - 16, listeEnnemis[i].y - 16);}
-			
+
 
 
 			if(listeEnnemis[i].trajet.length != 0){ // Si on est sur le trajet aller
@@ -290,8 +290,8 @@
 					vitesseRestante-=0.1;
 				}
 			}
-			
-			else{ // Si on est sur le trajet retour 
+
+			else{ // Si on est sur le trajet retour
 				//console.log("trajet retour");
 				vitesseRestante = listeEnnemis[i].vitesse;
 				while(vitesseRestante > 0){
@@ -345,7 +345,7 @@
 					listeMissiles[i].cible.vieBarre.data[j+0]=255;
 					listeMissiles[i].cible.vieBarre.data[j+1]=0;
 				}
-				listeMissiles.splice(i, 1);  // problème ici des fois la cible est déjà morte mais on rentre pas dans le if plus haut -> missile non supprimé 
+				listeMissiles.splice(i, 1);  // problème ici des fois la cible est déjà morte mais on rentre pas dans le if plus haut -> missile non supprimé
 			}
 		}
 	}
@@ -356,7 +356,7 @@
 
 		if(clignotant == true){
 
-			
+
 			if(turretSelected == "classique"){
 				context.drawImage(tourelle, mouseX*33 + 300, mouseY*33 + 20);
 
@@ -364,7 +364,7 @@
 				gradient.addColorStop(0, "rgba(255, 0, 0, 0.5)");
 				gradient.addColorStop(0.6, "rgba(255, 110, 110, 0.2)");
 				gradient.addColorStop(1, "rgba(255, 230, 180, 0.2)");
-			
+
 				context.beginPath();
 				context.fillStyle = gradient;
 				context.arc(xCircle, YCircle, range3, 0, 2*Math.PI)
@@ -385,12 +385,12 @@
 				context.fill();
 				context.closePath();
 			}
-			
+
 		}
-		
+
 	}
 
-	
+
 	function statsJoueur(){
 		context.fillStyle = 'black';
 		context.clearRect(0, 0, 300, 400);
@@ -415,7 +415,7 @@
 
 	var composanteVitesseX, composanteVitesseY;
 	var composanteVitesseXabs, composanteVitesseYabs;
-	function mouvementsMissile(){ // A REFAIRE OPTIMISE ? // tester sans trunc, voir avec des vitesses faibles si le comportement est meilleur sur diagonales 
+	function mouvementsMissile(){ // A REFAIRE OPTIMISE ? // tester sans trunc, voir avec des vitesses faibles si le comportement est meilleur sur diagonales
 		for(i=0; i<listeMissiles.length; i++){
 			composanteVitesseX = listeMissiles[i].posX-listeMissiles[i].cible.x;
 			composanteVitesseY = listeMissiles[i].posY-listeMissiles[i].cible.y;
@@ -426,25 +426,25 @@
 			composanteVitesseYabs = listeMissiles[i].vitesse-composanteVitesseXabs;
 			if(composanteVitesseX>0){ listeMissiles[i].posX -= composanteVitesseXabs; }
 			else{ listeMissiles[i].posX += composanteVitesseXabs; }
-			
+
 			if(composanteVitesseY>0){ listeMissiles[i].posY -= composanteVitesseYabs; }
 			else{ listeMissiles[i].posY += composanteVitesseYabs; }
 		}
 	}
-	
+
 	function ajoutEnnemi(){
 		if(fileEnnemis.length != 0 ){
 			if(fileEnnemis[0][1] == time){
 				if(fileEnnemis[0][0] == 3){listeEnnemis.unshift(new Ennemi(fileEnnemis[0][0], vie3, posEnnemiX, posEnnemiY, fileEnnemis[0][2]));}
 				else if (fileEnnemis[0][0] == 4){listeEnnemis.unshift(new Ennemi(fileEnnemis[0][0], vie4, posEnnemiX, posEnnemiY, fileEnnemis[0][2]));}
-				
-				listeEnnemis[0].addTrajet();	
+
+				listeEnnemis[0].addTrajet();
 				listeEnnemis[0].addBarreVie();
 				fileEnnemis.shift();
 			}
 		}
 	}
-	
+
 	var jInverse;
 	function tir(){
 		for(i=0; i<listeTourellesAlliees.length; i++){
@@ -472,7 +472,7 @@
 	var xTempo, yTempo, trajetTempo, trajetRetTempo;
 	function suppressionEnnemi(){
 		for(i=0; i<listeEnnemis.length; i++){
-			if(listeEnnemis[i].vie <= 0){ 
+			if(listeEnnemis[i].vie <= 0){
 				if(listeEnnemis[i].type == 3){ listeEnnemis.splice(i, 1); joueur1.gold += 100; statsJoueur(); }
 				else if(listeEnnemis[i].type == 4){
 
@@ -480,9 +480,9 @@
 					yTempo = listeEnnemis[i].y;
 					trajetTempo = listeEnnemis[i].trajet;
 					trajetRetTempo = listeEnnemis[i].trajetRetour;
-					
+
 					listeEnnemis.splice(i, 1); joueur1.gold += 100; statsJoueur();
-					
+
 					listeEnnemis.unshift(new Ennemi(3, vie3, xTempo, yTempo, 4 + Math.trunc(Math.random()*12)));
 					listeEnnemis[0].trajet = trajetTempo;
 					listeEnnemis[0].trajetRetour = trajetRetTempo;
@@ -521,11 +521,11 @@
 	//context.drawImage(tourelle, 200, 240-25);
 	//context.drawImage(bombardier, 200, 290-25);
 	document.onclick = function(e){
-	/* POUR PLUS TARD :	
+	/* POUR PLUS TARD :
 		context.rotate(1*Math.PI/180);
 		context.clearRect(0, 0, wdt, hgt); // inutile ici
 		context.scale(0.9, 0.9)
-	*/	
+	*/
 		if(e.clientX>200 && e.clientX<233 && e.clientY>240-25 && e.clientY<240-25+33){turretSelected="classique";}
 		if(e.clientX>200 && e.clientX<233 && e.clientY>290-25 && e.clientY<290-25+33){turretSelected="bombardier";}
 
@@ -534,14 +534,14 @@
 		if(map[clickY][clickX] != 4 && map[clickY][clickX] != 'a'){ // si case pas déjà occupée par bombardier ou classique
 			if(map[clickY][clickX] == 2 && turretSelected == "classique" && joueur1.gold >= 100){
 				map[clickY][clickX] = 4;
-				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range3, dmgClassique)); // range 75 idéale 
+				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range3, dmgClassique)); // range 75 idéale
 				joueur1.gold -= 100;
 			}
 			else if(map[clickY][clickX] == 2 && turretSelected == "bombardier" && joueur1.gold >= 300){
 				map[clickY][clickX] = 'a';
 				listeTourellesAlliees.push(new TourelleAlliee(clickX, clickY, range4, dmgBombardier));
 				joueur1.gold -= 300;
-			}		
+			}
 		}
 		if(map[clickY][clickX] == 1 && joueur1.gold >= 500){
 			map[clickY][clickX] = 2;
@@ -553,7 +553,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // FIN FONCTIONS INTERACTIONS SOURIS ET CLAVIER ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  INIT  & LOOP //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -563,7 +563,7 @@
 
 	function resize(){ // voir si on peut catch une erreur pour ça qui ne fonctionne plus ?
 		wdt = window.innerWidth;
-		hgt = window.innerHeight; 
+		hgt = window.innerHeight;
 		context.canvas.width = wdt;
 		context.canvas.height = hgt;
 	}
@@ -582,7 +582,7 @@
 		suppressionEnnemi();
 		dessinBarreVie();
 		stats.end();
-		
+
 		requestAnimationFrame(loop);
 	}
 
